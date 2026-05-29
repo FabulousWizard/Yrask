@@ -51,6 +51,21 @@ def to_wgs84(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf.to_crs(WGS84)
 
 
+def compute_merged_zone_3301(gdf_list: list, radius_km: float) -> gpd.GeoDataFrame:
+    """
+    Compute a merged danger zone from multiple GeoDataFrames in EPSG:3301.
+    Used for spatial queries (WFS bbox) — stays in projected CRS.
+    """
+    radius_m = radius_km * 1000
+    all_buffered = []
+    for gdf in gdf_list:
+        if gdf.crs is None or gdf.crs.to_epsg() != 3301:
+            gdf = gdf.set_crs(ESTONIAN_CRS, allow_override=True)
+        all_buffered.extend(list(gdf.geometry.buffer(radius_m)))
+    merged = unary_union(all_buffered)
+    return gpd.GeoDataFrame(geometry=[merged], crs=ESTONIAN_CRS)
+
+
 # ── Future extensions ──────────────────────────────────────────────────────────
 # def compute_convex_hull(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 #     """Wrap all features in a convex hull polygon."""
