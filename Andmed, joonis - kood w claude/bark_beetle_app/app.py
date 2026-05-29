@@ -5,6 +5,7 @@ from streamlit_folium import st_folium
 from data.loader import load_rmk, load_eelis
 from data.zones import to_wgs84, simplify_for_display
 from data.compartments import load_all_compartments
+from data.styles import DANGER_INDEX_STYLES, RMK_STYLE, EELIS_STYLE, MAP_DEFAULTS
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -149,29 +150,24 @@ if show_compartments and compartments_available:
 # ── Build Folium map ──────────────────────────────────────────────────────────
 
 m = folium.Map(
-    location=[58.7, 25.5],
-    zoom_start=7,
-    tiles="OpenStreetMap",
+    location=[MAP_DEFAULTS["center_lat"], MAP_DEFAULTS["center_lon"]],
+    zoom_start=MAP_DEFAULTS["zoom_start"],
+    tiles=MAP_DEFAULTS["tile_layer"],
 )
 
 # — Forest compartments (drawn first so they sit below bug data)
 if show_compartments and compartments_json:
 
-    # Color by danger index
-    DANGER_COLORS = {
-        2: {"fillColor": "#e74c3c", "fillOpacity": 0.55},  # red — high
-        1: {"fillColor": "#f39c12", "fillOpacity": 0.35},  # orange — medium
-        0: {"fillColor": "#27ae60", "fillOpacity": 0.20},  # green — low
-    }
-
+    # Color by danger index (styles from data/styles.py)
     def compartment_style(feature):
         danger = feature["properties"].get("danger_index", 0)
-        style = DANGER_COLORS.get(danger, DANGER_COLORS[0])
+        s = DANGER_INDEX_STYLES.get(danger, DANGER_INDEX_STYLES[0])
         return {
-            "fillColor": style["fillColor"],
-            "color": "#555555",
-            "weight": 0.5,
-            "fillOpacity": style["fillOpacity"],
+            "fillColor": s["fill_color"],
+            "color": s["border_color"],
+            "weight": s["border_weight"],
+            "fillOpacity": s["fill_opacity"],
+            "dashArray": s["dash_array"],
         }
 
     comp_tooltip_fields = [
@@ -200,10 +196,11 @@ if show_rmk:
         rmk_display_json,
         name="Damage areas (RMK)",
         style_function=lambda _: {
-            "fillColor": "#e74c3c",
-            "color": "#922b21",
-            "weight": 1,
-            "fillOpacity": 0.55,
+            "fillColor": RMK_STYLE["fill_color"],
+            "color": RMK_STYLE["border_color"],
+            "weight": RMK_STYLE["border_weight"],
+            "fillOpacity": RMK_STYLE["fill_opacity"],
+            "dashArray": RMK_STYLE["dash_array"],
         },
         tooltip=tooltip_for(rmk_gdf),
     ).add_to(m)
@@ -214,12 +211,12 @@ if show_eelis:
         eelis_display_json,
         name="Sighting points (EELIS)",
         marker=folium.CircleMarker(
-            radius=6,
-            color="#d68910",
+            radius=EELIS_STYLE["marker_radius"],
+            color=EELIS_STYLE["border_color"],
             fill=True,
-            fill_color="#f1c40f",
-            fill_opacity=0.9,
-            weight=1.5,
+            fill_color=EELIS_STYLE["fill_color"],
+            fill_opacity=EELIS_STYLE["fill_opacity"],
+            weight=EELIS_STYLE["border_weight"],
         ),
         tooltip=tooltip_for(eelis_gdf),
     ).add_to(m)
