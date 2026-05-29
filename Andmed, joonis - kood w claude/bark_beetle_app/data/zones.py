@@ -27,8 +27,23 @@ def compute_buffer(gdf: gpd.GeoDataFrame, radius_km: float) -> gpd.GeoDataFrame:
         gdf = gdf.set_crs(ESTONIAN_CRS, allow_override=True)
 
     buffered_union = unary_union(gdf.geometry.buffer(radius_m))
+
+    # Simplify the merged geometry to keep GeoJSON small enough for browsers.
+    # Tolerance is in CRS units (metres). Larger buffers can tolerate more
+    # simplification without visible loss — a 50 km buffer simplified to 100 m
+    # is visually identical but orders of magnitude fewer vertices.
+    tolerance = max(50, radius_m * 0.005)  # 0.5% of radius, min 50 m
+    buffered_union = buffered_union.simplify(tolerance, preserve_topology=True)
+
     result = gpd.GeoDataFrame(geometry=[buffered_union], crs=ESTONIAN_CRS)
     return result.to_crs(WGS84)
+
+
+def simplify_for_display(gdf: gpd.GeoDataFrame, tolerance_m: float = 20) -> gpd.GeoDataFrame:
+    """Simplify source polygons for lighter web display (keeps topology)."""
+    gdf = gdf.copy()
+    gdf["geometry"] = gdf.geometry.simplify(tolerance_m, preserve_topology=True)
+    return gdf
 
 
 def to_wgs84(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
