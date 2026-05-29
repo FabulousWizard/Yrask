@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <title>Maainfo prototüüp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h1>Maainfo</h1>
+        <button id="closeSidebar">×</button>
+      </div>
+
+      <div class="panel-section">
+        <h2>Otsing</h2>
+        <input id="searchInput" type="text" placeholder="Otsi kohta või katastriüksust">
+        <button id="searchBtn">Otsi</button>
+      </div>
+
+      <div class="panel-section">
+        <h2>Kaardikihid</h2>
+
+        <label>
+          <input type="checkbox" id="layerMarkers" checked>
+          Näidispunktid
+        </label>
+
+        <label>
+          <input type="checkbox" id="layerParcels">
+          Katastriüksused
+        </label>
+
+        <label>
+          <input type="checkbox" id="layerForest">
+          Metsainfo
+        </label>
+      </div>
+
+      <div class="panel-section">
+        <h2>Aluskaart</h2>
+        <button class="basemap-btn" data-map="osm">OpenStreetMap</button>
+        <button class="basemap-btn" data-map="ortho">Ortofoto näidis</button>
+      </div>
+
+      <div class="panel-section">
+        <h2>Infopäring</h2>
+        <p id="infoBox">Klõpsa kaardil, et näha koordinaate.</p>
+      </div>
+    </aside>
+
+    <main id="mapWrap">
+      <header id="topbar">
+        <button id="openSidebar">☰</button>
+        <div class="title">Maainfo prototüüp</div>
+        <button id="measureBtn">Mõõda</button>
+      </header>
+
+      <div id="map"></div>
+
+      <div id="coords">Koordinaadid: -</div>
+      <div id="copyright">Aluskaart: prototüüp / demo</div>
+    </main>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
