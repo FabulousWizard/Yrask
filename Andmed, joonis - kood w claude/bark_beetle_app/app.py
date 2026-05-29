@@ -3,11 +3,8 @@ import folium
 from streamlit_folium import st_folium
 
 from data.loader import load_rmk, load_eelis
-from data.zones import (
-    compute_buffer, to_wgs84, simplify_for_display, compute_merged_zone_3301,
-)
-from data.wfs import fetch_compartments_in_zone
-from data.risk import get_risk_style, RISK_CONFIG
+from data.zones import to_wgs84, simplify_for_display
+from data.compartments import load_all_compartments
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -22,8 +19,13 @@ st.caption("Data source: Estonian Environmental Register (register.keskkonnaport
 # ── Load data (cached) ────────────────────────────────────────────────────────
 @st.cache_resource
 def get_data():
-    """Load both datasets once and keep in memory."""
+    """Load bug datasets once and keep in memory."""
     return load_rmk(), load_eelis()
+
+@st.cache_resource
+def get_compartments():
+    """Load all available compartment files (one-time, cached)."""
+    return load_all_compartments()
 
 
 def tooltip_for(gdf):
@@ -49,186 +51,136 @@ except FileNotFoundError as e:
     st.error(str(e))
     st.stop()
 except Exception as e:
-    st.error(f"Failed to load data: {e}")
+    st.error(f"Failed to load bug data: {e}")
     st.stop()
+
+try:
+    all_compartments = get_compartments()
+    compartments_available = True
+except FileNotFoundError as e:
+    st.warning(str(e))
+    compartments_available = False
+except Exception as e:
+    st.warning(f"Error loading compartments: {e}")
+    compartments_available = False
 
 
 # ── Sidebar controls ──────────────────────────────────────────────────────────
 with st.sidebar:
     st.header("⚙️ Map Controls")
 
-    radius_km = st.slider(
-        "Danger zone radius (km)",
-        min_value=1,
-        max_value=50,
-        value=10,
-        step=1,
-        help="Buffer drawn around both damage polygons and sighting points",
-    )
-
-    st.divider()
     st.subheader("Bug Data Layers")
-
     show_rmk = st.checkbox("🔴 Damage areas (RMK)", value=True)
-    show_rmk_buffer = st.checkbox("🔴 Damage danger zone", value=True)
     show_eelis = st.checkbox("🟡 Sighting points (EELIS)", value=True)
-    show_eelis_buffer = st.checkbox("🟡 Sighting danger zone", value=True)
 
-    st.divider()
-    st.subheader("Forest Compartments")
+    if compartments_available:
+        st.divider()
+        st.subheader("Forest Compartments")
 
-    show_compartments = st.checkbox(
-        "🌲 Show forest compartments in danger zone",
-        value=False,
-        help="Fetches compartment data from the Forest Registry (WFS)",
-    )
+        show_compartments = st.checkbox("🌲 Show spruce compartments", value=True)
 
-    color_mode = "spruce_dominant"
-    if show_compartments:
-        color_mode_label = st.radio(
-            "Color coding",
-            ["Spruce-dominant", "Full vulnerability gradient"],
-            horizontal=True,
-        )
-        color_mode = "spruce_dominant" if color_mode_label == "Spruce-dominant" else "gradient"
+        min_danger = 1
+        if show_compartments:
+            min_danger = st.slider(
+                "Minimum danger index",
+                min_value=0,
+                max_value=2,
+                value=1,
+                step=1,
+                help="Only show compartments at or above this danger level (0–2)",
+            )
 
-        # Legend
-        st.caption("**Legend:**")
-        config = RISK_CONFIG[color_mode]
-        for level in config["levels"]:
-            label = level["label"]
-            if "High" in label:
-                icon = "🔴"
-            elif "Medium" in label:
-                icon = "🟠"
-            else:
-                icon = "🟢"
-            st.caption(f"{icon} {label}")
+            st.caption("**Danger index:**")
+            st.caption("🔴 2 — High (spruce in prime sites)")
+            st.caption("🟠 1 — Medium (spruce in other sites)")
+            st.caption("⚪ 0 — Low (not shown by default)")
+    else:
+        show_compartments = False
+        min_danger = 1
 
     st.divider()
     st.caption(
         f"**RMK features:** {len(rmk_gdf)}  \n"
         f"**EELIS features:** {len(eelis_gdf)}"
     )
+    if compartments_available:
+        st.caption(f"**Compartments loaded:** {len(all_compartments)}")
 
 
-# ── Compute buffers ───────────────────────────────────────────────────────────
-
-@st.cache_data
-def get_buffer_json(_gdf, radius_km, label):
-    """Compute buffer and return GeoJSON string (cached by radius + label)."""
-    return compute_buffer(_gdf, radius_km).to_json()
+# ── Prepare display data ─────────────────────────────────────────────────────
 
 @st.cache_data
 def get_display_json(_gdf, label):
-    """Simplify + reproject source data and return GeoJSON string (cached)."""
+    """Simplify + reproject source data and return GeoJSON string."""
     simplified = simplify_for_display(_gdf)
     return to_wgs84(simplified).to_json()
 
-with st.spinner("Computing danger zones..."):
-    rmk_buffer_json = get_buffer_json(rmk_gdf, radius_km, "rmk") if show_rmk_buffer else None
-    eelis_buffer_json = get_buffer_json(eelis_gdf, radius_km, "eelis") if show_eelis_buffer else None
-    rmk_display_json = get_display_json(rmk_gdf, "rmk")
-    eelis_display_json = get_display_json(eelis_gdf, "eelis")
-
-
-# ── Fetch forest compartments (WFS) ──────────────────────────────────────────
-
-@st.cache_data(ttl=600, show_spinner=False)
-def fetch_compartments_cached(_rmk_gdf, _eelis_gdf, radius_km):
-    """
-    Fetch compartments from WFS within the merged danger zone.
-    Cached by radius (source data is fixed during a session).
-    Returns (geojson_string, feature_count).
-    """
-    zone_3301 = compute_merged_zone_3301([_rmk_gdf, _eelis_gdf], radius_km)
-    compartments = fetch_compartments_in_zone(zone_3301)
-
-    if compartments.empty:
+@st.cache_data
+def get_compartments_json(_gdf, min_danger_index):
+    """Filter by danger index, simplify, and convert for display."""
+    filtered = _gdf[_gdf["danger_index"] >= min_danger_index]
+    if filtered.empty:
         return "", 0
-
-    simplified = simplify_for_display(compartments, tolerance_m=15)
+    simplified = simplify_for_display(filtered, tolerance_m=50)
     display = to_wgs84(simplified)
     return display.to_json(), len(display)
 
+with st.spinner("Preparing map data..."):
+    rmk_display_json = get_display_json(rmk_gdf, "rmk")
+    eelis_display_json = get_display_json(eelis_gdf, "eelis")
 
 compartments_json = ""
 compartments_count = 0
 
-if show_compartments:
+if show_compartments and compartments_available:
     try:
-        with st.spinner("Fetching forest compartments from WFS..."):
-            compartments_json, compartments_count = fetch_compartments_cached(
-                rmk_gdf, eelis_gdf, radius_km
+        with st.spinner(f"Filtering compartments (danger index ≥ {min_danger})..."):
+            compartments_json, compartments_count = get_compartments_json(
+                all_compartments, min_danger
             )
         if compartments_count > 0:
-            st.sidebar.caption(f"**Compartments loaded:** {compartments_count}")
+            st.sidebar.caption(f"**Compartments shown:** {compartments_count}")
         else:
-            st.info("No forest compartments found within the danger zone.")
-    except ConnectionError as e:
-        st.warning(f"Could not reach the Forest Registry WFS: {e}")
+            st.info("No compartments match the current danger index filter.")
     except Exception as e:
-        st.warning(f"Error fetching compartments: {e}")
+        st.warning(f"Error preparing compartments: {e}")
 
 
 # ── Build Folium map ──────────────────────────────────────────────────────────
 
 m = folium.Map(
-    location=[58.7, 25.5],   # Centred on Estonia
+    location=[58.7, 25.5],
     zoom_start=7,
     tiles="OpenStreetMap",
 )
 
-# — RMK damage buffer (drawn first so it sits below everything else)
-if show_rmk_buffer and rmk_buffer_json:
-    folium.GeoJson(
-        rmk_buffer_json,
-        name=f"Damage danger zone ({radius_km} km)",
-        style_function=lambda _: {
-            "fillColor": "#e74c3c",
-            "color": "#c0392b",
-            "weight": 1.5,
-            "fillOpacity": 0.12,
-            "dashArray": "6 4",
-        },
-    ).add_to(m)
-
-# — EELIS sighting buffer
-if show_eelis_buffer and eelis_buffer_json:
-    folium.GeoJson(
-        eelis_buffer_json,
-        name=f"Sighting danger zone ({radius_km} km)",
-        style_function=lambda _: {
-            "fillColor": "#f39c12",
-            "color": "#d68910",
-            "weight": 1.5,
-            "fillOpacity": 0.12,
-            "dashArray": "6 4",
-        },
-    ).add_to(m)
-
-# — Forest compartments (color-coded by risk)
+# — Forest compartments (drawn first so they sit below bug data)
 if show_compartments and compartments_json:
-    current_mode = color_mode  # capture for closure
 
-    def compartment_style(feature, _mode=current_mode):
-        species = feature["properties"].get("peapuuliik_kood", "")
-        risk = get_risk_style(species, _mode)
+    # Color by danger index
+    DANGER_COLORS = {
+        2: {"fillColor": "#e74c3c", "fillOpacity": 0.55},  # red — high
+        1: {"fillColor": "#f39c12", "fillOpacity": 0.35},  # orange — medium
+        0: {"fillColor": "#27ae60", "fillOpacity": 0.20},  # green — low
+    }
+
+    def compartment_style(feature):
+        danger = feature["properties"].get("danger_index", 0)
+        style = DANGER_COLORS.get(danger, DANGER_COLORS[0])
         return {
-            "fillColor": risk["color"],
+            "fillColor": style["fillColor"],
             "color": "#555555",
             "weight": 0.5,
-            "fillOpacity": risk["fill_opacity"],
+            "fillOpacity": style["fillOpacity"],
         }
 
-    # Build tooltip with available fields
     comp_tooltip_fields = [
-        "peapuuliik_kood", "keskm_vanus", "pindala",
-        "katastri_nr", "kasvukoht_kood", "arengukl_kood",
+        "danger_index", "peapuuliik_kood", "kasvukoht_kood",
+        "keskm_vanus", "pindala", "katastri_nr", "arengukl_kood",
     ]
     comp_tooltip_aliases = [
-        "Main species", "Age (years)", "Area (ha)",
-        "Cadastral No.", "Site type", "Dev. class",
+        "Danger index", "Main species", "Site type",
+        "Age (years)", "Area (ha)", "Cadastral No.", "Dev. class",
     ]
 
     folium.GeoJson(
