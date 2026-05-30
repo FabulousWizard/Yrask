@@ -117,15 +117,19 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+useEffect(() => {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
-    const swUrl = `${BASE_URL}sw.js`;
-    navigator.serviceWorker
-      .register(swUrl, { scope: BASE_URL })
-      .catch((error) => console.warn("Service worker registration failed", error));
-  }, []);
+  void navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  });
 
+  void caches.keys().then((keys) =>
+    Promise.all(keys.map((key) => caches.delete(key)))
+  );
+}, []);
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
