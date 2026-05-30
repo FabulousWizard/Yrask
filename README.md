@@ -53,3 +53,7 @@ docker rm maainfo-web
 - `Dockerfile` - Docker image'i ehitamine
 - `nginx.conf` - Nginxi konfiguratsioon
 - `docker-compose.yml` - lihtne Docker Compose käivitus
+
+## Lahendus
+
+Rakendus teeb päringud Eesti ametlikesse riigiandmebaasidesse, nagu Maa-ametileht, apiDoc: Estonian Weather API. Lisaks sellele kasutatakse erinevaid kaarte tulemuste visualiseerimiseks, seejuures on kõige suurem rõhk kuusepuude asukohtadel. Päringute põhjal, nagu tuulesuund, -kiirus, temperatuur, sademete hulk, koostatatakse ohumaatriks, mille abil arvutatakse üraskile soodne levimissuund. Siin Gitis on ka faili alged edasiste arenduste kohta internetivaba kasutamiseks. 
