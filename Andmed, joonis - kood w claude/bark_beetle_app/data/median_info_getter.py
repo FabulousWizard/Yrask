@@ -63,9 +63,9 @@ def save_medians_to_json(medians, output_path):
 if __name__ == "__main__":
     base_dir = Path(__file__).resolve().parent
 
-    raster_file = base_dir / "est_s2_ndvi_median_2025-09-01_2025-10-31_cog.tif"
+    raster_file = base_dir / "est_s2_ndvi_median_2025-06-01_2025-08-31_cog.tif"
     geojson_file = base_dir / "eraldis_ku.json"
-    output_file = base_dir / "plot_medians.json"
+    output_file = base_dir / "plot_medians_summmer2025.json"
 
     print("Raster exists:", raster_file.exists(), raster_file)
     print("GeoJSON exists:", geojson_file.exists(), geojson_file)
