@@ -1,9 +1,7 @@
 services:
-  maainfo-web:
+  yrask-map:
     build: .
-    container_name: maainfo-web
+    container_name: yrask-map
     ports:
-      - "8080:80"
-    volumes:
-      - ./data:/usr/share/nginx/html/data
+      - "8080:8080"
     restart: unless-stopped

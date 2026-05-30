@@ -6,6 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +20,7 @@
     <aside id="sidebar">
       <div class="sidebar-header">
         <h1>Maainfo</h1>
-        <button id="closeSidebar">×</button>
+        <button id="closeSidebar" aria-label="Sulge külgpaneel">×</button>
       </div>
 
       <div class="panel-section">
@@ -25,25 +32,10 @@
       <div class="panel-section">
         <h2>Kaardikihid</h2>
 
-        <label>
-          <input type="checkbox" id="layerWeather" checked>
-          Ilm maakonniti
-        </label>
-
-        <label>
-          <input type="checkbox" id="layerMarkers" checked>
-          Näidispunktid
-        </label>
-
-        <label>
-          <input type="checkbox" id="layerParcels">
-          Katastriüksused
-        </label>
-
-        <label>
-          <input type="checkbox" id="layerForest">
-          Metsainfo
-        </label>
+        <label><input type="checkbox" id="layerWeather" checked> Ilm maakonniti</label>
+        <label><input type="checkbox" id="layerMarkers" checked> Näidispunktid</label>
+        <label><input type="checkbox" id="layerParcels"> Katastriüksused</label>
+        <label><input type="checkbox" id="layerForest"> Metsainfo</label>
       </div>
 
       <div class="panel-section">
@@ -68,11 +60,16 @@
         <h2>Infopäring</h2>
         <p id="infoBox">Klõpsa kaardil, et näha koordinaate.</p>
       </div>
+
+      <div class="panel-section">
+        <h2>Offline / install</h2>
+        <p class="weather-meta">Ava leht telefonis, lisa see koduekraanile ja saad kasutada ka siis, kui ühendus kaob.</p>
+      </div>
     </aside>
 
     <main id="mapWrap">
       <header id="topbar">
-        <button id="openSidebar">☰</button>
+        <button id="openSidebar" aria-label="Ava külgpaneel">☰</button>
         <div class="title">Maainfo prototüüp</div>
         <button id="measureBtn">Mõõda</button>
       </header>
@@ -90,7 +87,7 @@
       </div>
 
       <div id="coords">Koordinaadid: -</div>
-      <div id="copyright">Aluskaart: prototüüp / demo. Ilmaandmed: Ilmateenistuse XML</div>
+      <div id="copyright">Aluskaart: prototüüp / demo. Ilmaandmed: Ilmateenistus XML</div>
     </main>
   </div>
 

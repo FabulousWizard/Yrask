@@ -1,20 +1,11 @@
-FROM nginx:alpine
+FROM oven/bun:1
 
-RUN apk add --no-cache python3
+WORKDIR /app
 
-RUN rm -rf /usr/share/nginx/html/*
+COPY package.json bun.lock bunfig.toml ./
+RUN bun install --frozen-lockfile
 
-COPY index.html /usr/share/nginx/html/index.html
-COPY style.css /usr/share/nginx/html/style.css
-COPY app.js /usr/share/nginx/html/app.js
-COPY data/weather.xml /usr/share/nginx/html/data/weather.xml
+COPY . .
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY update_weather_xml.py /opt/update_weather_xml.py
-COPY entrypoint.sh /entrypoint.sh
-
-RUN chmod +x /entrypoint.sh /opt/update_weather_xml.py     && mkdir -p /usr/share/nginx/html/data
-
-EXPOSE 80
-
-ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 8080
+CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "8080"]
