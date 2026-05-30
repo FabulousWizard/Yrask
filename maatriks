@@ -1,0 +1,34 @@
+
+PÜSIVAD TUNNUSED:
+
+Vanus Vaartus Kaal
+60+    3       1
+41-59  2       1
+0-40   1       1
+
+
+
+Kaugus    Vaartus    Kaal
+0-500     3          1
+501-1500  2          1
+1501+     1          1
+
+
+
+NDVI      Vaartus    Kaal
+0-0,3     3          0.9
+0,3-0.7   2          0.9
+0.7-1     1          0.9
+
+MUUTUVAD TUNNUSED: 
+
+Temp                    Vaartus     Kaal
+16.4-30                 3           0.2
+8.3-16.4; 30-38.9       2           0.1
+-5 - 8.3; 38.9+         1           0.05
+
+
+kõigil kolletel 1km default levikuala 
+Tuul -> kaugus *0,1 
+
+
