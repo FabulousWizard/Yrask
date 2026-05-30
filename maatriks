@@ -15,10 +15,10 @@ Kaugus    Vaartus    Kaal
 
 
 
-NDVI      Vaartus    Kaal
-0-0,3     3          0.9
-0,3-0.7   2          0.9
-0.7-1     1          0.9
+NDVI          Vaartus    Kaal
+0-0,6         3          0.9
+0,6001-0.75   2          0.9
+0.75001-1     1          0.9
 
 MUUTUVAD TUNNUSED: 
 
