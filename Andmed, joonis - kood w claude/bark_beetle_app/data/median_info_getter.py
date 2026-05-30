@@ -6,6 +6,9 @@ import numpy as np
 import rasterio
 from rasterio.features import geometry_window, geometry_mask
 
+# This script calculates the median raster value for each polygon in a GeoJSON file.
+# Used to get the meadian NDVI value for each plot in the bark beetle app.
+# The results are saved to a JSON file with the plot ID as the key and the median value as the value.
 
 def polygon_medians(raster_path, geojson_path, id_field="id", all_touched=False):
     results = {}

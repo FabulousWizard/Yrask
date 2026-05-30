@@ -1,0 +1,4 @@
+C:\Users\vaskj\Documents\GitHub\Yrask\Andmed, joonis - kood w claude\bark_beetle_app\data\Metsa vanuse arvutamine\CHM_2021_suvi.tif
+C:\Users\vaskj\Documents\GitHub\Yrask\Andmed, joonis - kood w claude\bark_beetle_app\data\Metsa vanuse arvutamine\CHM_2022_suvi.tif
+C:\Users\vaskj\Documents\GitHub\Yrask\Andmed, joonis - kood w claude\bark_beetle_app\data\Metsa vanuse arvutamine\CHM_2023_suvi.tif
+C:\Users\vaskj\Documents\GitHub\Yrask\Andmed, joonis - kood w claude\bark_beetle_app\data\Metsa vanuse arvutamine\CHM_2024_suvi.tif

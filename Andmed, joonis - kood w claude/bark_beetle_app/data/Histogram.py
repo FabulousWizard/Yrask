@@ -32,6 +32,6 @@ def plot_histogram(values, bins=30):
 
 
 if __name__ == "__main__":
-    file_path = r"plot_medians.json"   # use the medians file, not the GeoJSON
+    file_path = r"plot_medians_summmer2025.json"   # use the medians file, not the GeoJSON
     values = load_values(file_path)
     plot_histogram(values, bins=30)
