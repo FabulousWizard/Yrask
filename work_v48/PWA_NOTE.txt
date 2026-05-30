@@ -1,0 +1,5 @@
+PWA paigaldamise märkus
+
+See pakett lisab installinupu ja service workeri, kuid mobiilibrauserid näitavad installivõimalust tavaliselt ainult siis, kui sait on avatud turvalise ühendusega (HTTPS) või localhosti kaudu.
+
+Kui avad lehe telefonis aadressiga http://IP:8080, ei pruugi brauser installipakkumist näidata.
