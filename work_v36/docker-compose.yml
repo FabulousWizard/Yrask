@@ -1,0 +1,7 @@
+services:
+  yrask-map:
+    build: .
+    container_name: yrask-map
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
